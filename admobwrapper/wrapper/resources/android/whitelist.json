@@ -1,0 +1,93 @@
+{
+    "general": {
+        "packages": [
+        ]
+    },
+    "apks": [
+        {
+            "app_name": "龙信史",
+            "package_name": "com.san.mobileoffice.dragonmail",
+            "apk_MD5": "",
+            "keywords": [
+            ],
+            "packages": [
+            ],
+            "classes": [],
+            "exclude_classes": []
+        },
+        {
+            "app_name": "通达OA",
+            "package_name": "com.td.ispirit2015",
+            "apk_MD5": "",
+            "keywords": [],
+            "packages": [
+                "com.baidu",
+                "cn.jpush",
+                "cn.sharesdk",
+                "cn.jiguang"
+            ],
+            "classes": [],
+            "exclude_classes": []
+        }, {
+            "app_name": "泛微OA",
+            "package_name": "com.ecology.view",
+            "apk_MD5": "",
+            "keywords": ["LockPattern"],
+            "packages": [
+            ],
+            "classes": [
+			],
+            "exclude_classes": [
+            ]
+        },
+        {
+            "app_name": "LiveBos",
+            "package_name": "com.apex.livebos.app",
+            "apk_MD5": "",
+            "keywords": [],
+            "packages": [
+                
+            ],
+            "classes": [],
+            "exclude_classes": []
+        },
+        {
+            "app_name": "四川省OA_协同办公",
+            "package_name": "com.yr.mobileofficeapp",
+            "apk_MD5": "",
+            "keywords": [],
+            "packages": [
+                "android.support.v4"
+            ],
+            "classes": [],
+            "exclude_classes": []
+        },
+        {
+            "app_name": "密信通",
+            "package_name": "com.san.mobileoffice.sim",
+            "apk_MD5": "",
+            "keywords": [
+                "ResourceExtractor"
+            ],
+            "packages": [
+                "android.support.v4",
+                "com.baidu",
+                "com.google",
+                "com.huawei"
+            ],
+            "classes": [],
+            "exclude_classes": []
+        },
+        {
+            "app_name": "测试CompatActivity",
+            "package_name": "com.tjnetsec.sunb.compatactvitiy",
+            "apk_MD5": "",
+            "keywords": [],
+            "packages": [
+                "android.support"
+            ],
+            "classes": [],
+            "exclude_classes": []
+        }
+    ]
+}

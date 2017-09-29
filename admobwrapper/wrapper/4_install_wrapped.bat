@@ -1,0 +1,1 @@
+adb install -r D:\work\wrapper\wrapper\wrapper\test_out.apk

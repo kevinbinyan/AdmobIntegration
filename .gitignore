@@ -1,0 +1,14 @@
+*.class
+ 
+# Package Files #
+*.apk
+*.war
+*.ear
+wrapper/.
+# ignore Maven generated target folders
+target
+ 
+# ignore eclipse files
+.settings
+.metadata
+/wrapper/test-out.apk.wrapmanifest
