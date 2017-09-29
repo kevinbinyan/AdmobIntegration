@@ -169,6 +169,7 @@ public class AppModifier
 		public String origManifest;
 		public String origApktoolyml;
 		private File apktoolExtractDir;
+		private File admobtoolExtractDir;
 		public Map<String, String> optStringMap;
 
 		public void cleanup()
@@ -306,10 +307,12 @@ public class AppModifier
 		if (dxPath == null)
 			throw new ProcessingException("Missing configuration parameter 'dx'.");
 		//将Mg.aar中的mg.jar解压缩到resources\android中
-		extractMgJar(); 
+//		extractMgJar(); 
 		ProcessingResult wrappingResult = null;
 		File miscDir = ServerUtil.createTempDir(PathAndFileConfig.MiscDir);
 		File apkExtractDir = ServerUtil.createTempDir(PathAndFileConfig.ApkExtractDir);
+		
+		File admobExtractDir = ServerUtil.createTempDir(PathAndFileConfig.AdmobExtractDir);
 		// File apktoolExtractDir=createTempDir(servletContext,"apktoolextr");
 		File smaliDumpDir = ServerUtil.createTempDir(PathAndFileConfig.SmaliDumpDir);
 		File compressedRsrcPkgExtractDir = ServerUtil.createTempDir(PathAndFileConfig.compressedRsrcPkgExtractDir);
@@ -331,16 +334,17 @@ public class AppModifier
 			// 合并smali,smali_classes2等
 			gatherSmali(resourceReconstruction.apktoolExtractDir + File.separator + "smali");
 
-			if (/* !permitUploadOfDebuggingApp && */ hasAlreadyBeenWrapped(apkExtractDir, smaliDumpDir))
-				throw new ProcessingException(
-						"Wrapping or a wrapping SDK has already been applied to this application. Please submit the original application instead.");
+//			if (/* !permitUploadOfDebuggingApp && */ hasAlreadyBeenWrapped(apkExtractDir, smaliDumpDir))
+//				throw new ProcessingException(
+//						"Wrapping or a wrapping SDK has already been applied to this application. Please submit the original application instead.");
 			// String
 			// wrappedManifest,packageName,activityName,versionName,versionCode;
 			ManifestModifier.modifyManifest(resourceReconstruction.origManifest, resourceReconstruction.optStringMap,
 					parameters.getOptGDApplicationID(), parameters.getOptGDApplicationVersion());
 			
 			
-			String newApktoolyml = Walkaround.modifyApktoolyml(resourceReconstruction.origApktoolyml);
+//			String newApktoolyml = Walkaround.modifyApktoolyml(resourceReconstruction.origApktoolyml);
+			String newApktoolyml = resourceReconstruction.origApktoolyml;
 			
 			String wrappedApktoolymlFilename = Walkaround.write2File(miscDir, newApktoolyml); 
 			
@@ -361,10 +365,7 @@ public class AppModifier
 			// 从这开始有问题，缺少wrapperlib
 			copyWrapperLib(smaliDumpDir,
 					resourceReconstruction
-							.getRootDir() /*
-											 * new File(resourceReconstruction.
-											 * getResourceDirPath()).getParent()
-											 */ /* ,optMinSDKVersion */,
+							.getRootDir(),
 					wrappedManifestFilename, resourceReconstruction.getResourceDirPath(),
 					ManifestModifier.appInfo.getPackageName());
 
@@ -795,9 +796,11 @@ public class AppModifier
 		ResourceReconstruction rr = new ResourceReconstruction();
 		rr.apktoolExtractDir = ServerUtil.createTempDir(PathAndFileConfig.ApkExtractDir);
 		rr.apktoolExtractDir.delete();
-		// System.out.print("java -jar "+apktoolLocation+" decode --no-src "+
-		// origApkFileName+" "+rr.apktoolExtractDir.getAbsolutePath());
-		final String apktoolExtractDirPath = rr.apktoolExtractDir.getAbsolutePath();
+		final String apkExtractDirPath = rr.apktoolExtractDir.getAbsolutePath();
+		
+		rr.admobtoolExtractDir = ServerUtil.createTempDir(PathAndFileConfig.AdmobExtractDir);
+		rr.admobtoolExtractDir.delete();
+		final String admobExtractDirPath = rr.admobtoolExtractDir.getAbsolutePath();
 
 		List<String> args = new LinkedList<String>();
 		args.add("decode");
@@ -809,84 +812,99 @@ public class AppModifier
 		args.add("-f");
 		args.add(origApkFileName);
 		args.add("-o");
-		args.add(apktoolExtractDirPath);
+		args.add(apkExtractDirPath);
+		// 展开要处理的apk
+		execAPKTool(args);
+		
+		String admobApk = com.zdk.wrap.mg.AppModifier.getResourceFilePath("android/" +"admob.apk");
+		args = new LinkedList<String>();
+		args.add("decode");
+		if (minimizeApkToolUsage)
+		{
+			args.add("--no-src");
+			// args.add("--no-res");
+		}
+		args.add("-f");
+		args.add(admobApk);
+		args.add("-o");
+		args.add(admobExtractDirPath);
 		// 展开要处理的apk
 		execAPKTool(args);
 		
 		//将so文件拷贝到APK对应目录下
 		
-		ServerUtil.forEachFile(PathAndFileConfig.DynamicLlinkLibraryLocation, new ServerUtil.FileAction(){
-            
-
-            @Override
-            public void action(File file) throws IOException
-            {
-                if( file.getName().endsWith(".so"))
-                {
-                	if(new File(apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi").exists())
-                	{
-                		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi"+"\\"+ file.getName());
-                	}
-                	else
-                	{
-                		new File(apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi").mkdirs();
-                		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi"+"\\"+ file.getName());
-                	}
-                	if(new File(apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi-v7a").exists())
-                	{
-                		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi-v7a"+"\\"+ file.getName());
-                	}
-                	else
-                	{
-                		new File(apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi-v7a").mkdirs();
-                		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi-v7a"+"\\"+ file.getName());
-                	}
-                }
-            }
-        });
+//		ServerUtil.forEachFile(PathAndFileConfig.DynamicLlinkLibraryLocation, new ServerUtil.FileAction(){
+//            
+//
+//            @Override
+//            public void action(File file) throws IOException
+//            {
+//                if( file.getName().endsWith(".so"))
+//                {
+//                	if(new File(apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi").exists())
+//                	{
+//                		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi"+"\\"+ file.getName());
+//                	}
+//                	else
+//                	{
+//                		new File(apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi").mkdirs();
+//                		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi"+"\\"+ file.getName());
+//                	}
+//                	if(new File(apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi-v7a").exists())
+//                	{
+//                		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi-v7a"+"\\"+ file.getName());
+//                	}
+//                	else
+//                	{
+//                		new File(apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi-v7a").mkdirs();
+//                		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"lib"+"\\"+"armeabi-v7a"+"\\"+ file.getName());
+//                	}
+//                }
+//            }
+//        });
 		
 		//将assets文件拷贝到APK对应目录下
-		ServerUtil.forEachFile(PathAndFileConfig.AndroidAssets, new ServerUtil.FileAction(){
-            
-
-            @Override
-            public void action(File file) throws IOException
-            {
-            	if(new File(apktoolExtractDirPath + "\\"+"assets").exists())
-                {
-                	writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"assets"+"\\"+ file.getName());
-                }
-            	else
-            	{
-            		new File(apktoolExtractDirPath + "\\"+"assets").mkdir();
-            		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"assets"+"\\"+ file.getName());
-            	}
-            }
-        });
+//		ServerUtil.forEachFile(PathAndFileConfig.AndroidAssets, new ServerUtil.FileAction(){
+//            
+//
+//            @Override
+//            public void action(File file) throws IOException
+//            {
+//            	if(new File(apktoolExtractDirPath + "\\"+"assets").exists())
+//                {
+//                	writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"assets"+"\\"+ file.getName());
+//                }
+//            	else
+//            	{
+//            		new File(apktoolExtractDirPath + "\\"+"assets").mkdir();
+//            		writeToFile(new FileInputStream(file), apktoolExtractDirPath + "\\"+"assets"+"\\"+ file.getName());
+//            	}
+//            }
+//        });
 				
 		
 		//扫描只存在于manifest中而在代码中不存在的Activity
-		List<String> args4Scanner = new LinkedList<String>();
-		args4Scanner.add(apkNameInParameters);
-		execScanner(args4Scanner);
+//		List<String> args4Scanner = new LinkedList<String>();
+//		args4Scanner.add(apkNameInParameters);
+//		execScanner(args4Scanner);
 
-		{
+//		{
 			FileInputStream inStr = new FileInputStream(
 					rr.apktoolExtractDir.getAbsolutePath() + File.separator + "AndroidManifest.xml");
 			ByteArrayOutputStream outStr = new ByteArrayOutputStream();
 			ServerUtil.copyStream(inStr, outStr);
 			inStr.close();
-			// 去掉？我们没有polarisoffice
-			//去掉只存在于manifest中而在代码中不存在的Activity
-			rr.origManifest = fixAPKToolManifestBugs(outStr.toString("UTF-8"),apkNameInParameters);
-			
+//			// 去掉？我们没有polarisoffice
+//			//去掉只存在于manifest中而在代码中不存在的Activity
+			rr.origManifest = outStr.toString("UTF-8");
+//			
 			rr.origApktoolyml = Walkaround.getOrgApktoolyml(rr.apktoolExtractDir.getAbsolutePath() + File.separator + "apktool.yml");
-			
-					
-		}
+//			
+//					
+//		}
 
 		// 开始
-		final String stringsXml = apktoolExtractDirPath + File.separator + "res" + File.separator + "values"
+		final String stringsXml = apkExtractDirPath + File.separator + "res" + File.separator + "values"
 				+ File.separator + "strings.xml";
 		final File stringsXmlFile = new File(stringsXml);
 		rr.optStringMap = null;
@@ -1128,8 +1146,8 @@ public class AppModifier
 				String mgAar = com.zdk.wrap.mg.AppModifier.getResourceFilePath("android/mg.aar");
 				// String gdAddJar =
 				// com.zdk.wrap.mg.AppModifier.getResourceFilePath("android/gdadd.jar");
-				if (!(mgJar != null && new File(mgJar).exists()))
-					throw new ProcessingException("Cannot locate mg.aar .");
+//				if (!(mgJar != null && new File(mgJar).exists()))
+//					throw new ProcessingException("Cannot locate mg.aar .");
 				// if (!(gdAddJar != null && new File(gdAddJar).exists()))
 				// throw new ProcessingException("Cannot locate gdadd.jar .");
 				// dxArgs.add(mgJar);

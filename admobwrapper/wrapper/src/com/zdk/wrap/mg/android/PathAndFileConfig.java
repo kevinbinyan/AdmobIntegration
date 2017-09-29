@@ -24,6 +24,8 @@ public class PathAndFileConfig {
 	public static final String MiscDir = 						"misc";									// C:\\Users\\user\AppData\Local\Temp\misc*******.tmp
 	//apk展开到哪
 	public static final String ApkExtractDir = 					"apkextr";								// C:\Users\\user\AppData\Local\Temp\apkextr*******.tmp
+	
+	public static final String AdmobExtractDir = 				"admobextr";								// C:\Users\\user\AppData\Local\Temp\admobextr*******.tmp
 	//smali展开到哪
 	public static final String SmaliDumpDir = 					"smalidump";							// C:\Users\\user\AppData\Local\Temp\smalidump*******.tmp\smali
 	//resource 展开到哪

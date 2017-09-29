@@ -17,7 +17,7 @@ import sun.launcher.resources.launcher;
 
 public class ManifestModifier {
 	private static final boolean useGoodDynamics = true;
-	private static final boolean injectLaunchActivity = true;
+	private static final boolean injectLaunchActivity = false;
 	static AppInfo appInfo;
 	static String newManifest;
 
@@ -105,8 +105,8 @@ public class ManifestModifier {
 					final int activityBodyEnd = am1End + activityMatcher2.end(1);
 					final int activityEnd = am1End + activityMatcher2.end();
 
-					if (injectLaunchActivity)
-						out.append(manifest.substring(lastOffset, activityBodyStart));
+//					if (injectLaunchActivity)
+//						out.append(manifest.substring(lastOffset, activityBodyStart));
 
 //有些apk的manifest中<intent-filter>标签中会有其他设置字段，导致<intent-filter>标签无法匹配，例如四川省政府的apk的manifest中包含<intent-filter android:label="@string/launcher_name">
 //					Matcher intentFilterMatcher = Pattern
@@ -157,35 +157,36 @@ public class ManifestModifier {
 							}
 						}
 
-						{
-							Matcher actionMatcher = Pattern
-									.compile("<action\\b[^>]*\\bandroid:name=\"android.intent.action.VIEW\"[^>]*/>",
-											Pattern.DOTALL)
-									.matcher(newIntentFilterBody);
-							if (actionMatcher.find()) {
-								// at the moment, prevent VIEW intents from
-								// starting, would lead to GD error:
-								// 'non-task-root Activity'
-								omitIntent = true;
-							}
-						}
+//						{
+//							Matcher actionMatcher = Pattern
+//									.compile("<action\\b[^>]*\\bandroid:name=\"android.intent.action.VIEW\"[^>]*/>",
+//											Pattern.DOTALL)
+//									.matcher(newIntentFilterBody);
+//							if (actionMatcher.find()) {
+//								// at the moment, prevent VIEW intents from
+//								// starting, would lead to GD error:
+//								// 'non-task-root Activity'
+//								omitIntent = true;
+//							}
+//						}
 
-						if (injectLaunchActivity)
-							out.append(activityBody.substring(actvityBodyLastOffset, intentFilterMatcher.start()));
+//						if (injectLaunchActivity)
+//							out.append(activityBody.substring(actvityBodyLastOffset, intentFilterMatcher.start()));
 						if (allMatched) {
 							newIntentFilterBody = newIntentFilterBody.trim();
 							optMainActivityName = activityName;
-							if (injectLaunchActivity) {
-								if (newIntentFilterBody.length() > 0)
-									out.append("<intent-filter>" + newIntentFilterBody + "</intent-filter>");
-							}
+//							if (injectLaunchActivity) {
+//								if (newIntentFilterBody.length() > 0)
+//									out.append("<intent-filter>" + newIntentFilterBody + "</intent-filter>");
+//							}
 							// modified=true;
-						} else {
-							if (injectLaunchActivity) {
-								if (!omitIntent)
-									out.append(intentFilterMatcher.group());
-							}
-						}
+						} 
+//						else {
+//							if (injectLaunchActivity) {
+//								if (!omitIntent)
+//									out.append(intentFilterMatcher.group());
+//							}
+//						}
 						actvityBodyLastOffset = intentFilterMatcher.end();
 					}
 					if (injectLaunchActivity) {
@@ -195,39 +196,39 @@ public class ManifestModifier {
 					}
 
 					if (optMainActivityName != null) {
-						if (injectLaunchActivity) {
-							String configChanges = "keyboardHidden|orientation|mcc|mnc|locale|touchscreen|keyboard|navigation|screenLayout|fontScale";
-							if (/* optTargetSdkVersionNum>=13 || */ optMinSdkVersionNum >= 13) {
-								configChanges += "|screenSize|smallestScreenSize"; 
-								// if always added then aapt will complain about "String types not allowed at 'configChanges' ..."
-							}
-
-							out.append("<activity android:name=\"" + (useGoodDynamics ? "com.zdk.wrap.mg.AuthActivity"
-									: "some.other.GuardianActivity") + "\"\n" +
-							/*
-							 * android:configChanges is required to avoid
-							 * calling onDestroy()+onCreate() after orientation
-							 * changes, especially "keyboardHidden|orientation",
-							 * omitted due to API level 7:
-							 * "uiMode|screenSize|smallestScreenSize", however
-							 * even if android:configChanges="..." is specified,
-							 * onDestroy is called when the original activity is
-							 * on top of the Guardian activity when orientation
-							 * changes, i.e., omitted. Update 20121107 by HA:
-							 * reactivated to enable orientation change for
-							 * TDO-5179
-							 */
-									"android:configChanges=\"" + configChanges + "\"\n" +
-									// or
-									// "android:configChanges="keyboardHidden|orientation|screenSize"
-									"android:launchMode=\"standard\"\n" + 
-									// android:launchMode="standard" is ok, "singleTask" is not ok: it would finish the ExampleApp activity when the AGUI is shown
-									">\n" + "  <intent-filter>\n"
-									+ "    <action android:name=\"android.intent.action.MAIN\" />\n"
-									+ "    <category android:name=\"android.intent.category.LAUNCHER\" />\n"
-									+ "  </intent-filter>\n" + "</activity>\n");
-
-						}
+//						if (injectLaunchActivity) {
+//							String configChanges = "keyboardHidden|orientation|mcc|mnc|locale|touchscreen|keyboard|navigation|screenLayout|fontScale";
+//							if (/* optTargetSdkVersionNum>=13 || */ optMinSdkVersionNum >= 13) {
+//								configChanges += "|screenSize|smallestScreenSize"; 
+//								// if always added then aapt will complain about "String types not allowed at 'configChanges' ..."
+//							}
+//
+//							out.append("<activity android:name=\"" + (useGoodDynamics ? "com.zdk.wrap.mg.AuthActivity"
+//									: "some.other.GuardianActivity") + "\"\n" +
+//							/*
+//							 * android:configChanges is required to avoid
+//							 * calling onDestroy()+onCreate() after orientation
+//							 * changes, especially "keyboardHidden|orientation",
+//							 * omitted due to API level 7:
+//							 * "uiMode|screenSize|smallestScreenSize", however
+//							 * even if android:configChanges="..." is specified,
+//							 * onDestroy is called when the original activity is
+//							 * on top of the Guardian activity when orientation
+//							 * changes, i.e., omitted. Update 20121107 by HA:
+//							 * reactivated to enable orientation change for
+//							 * TDO-5179
+//							 */
+//									"android:configChanges=\"" + configChanges + "\"\n" +
+//									// or
+//									// "android:configChanges="keyboardHidden|orientation|screenSize"
+//									"android:launchMode=\"standard\"\n" + 
+//									// android:launchMode="standard" is ok, "singleTask" is not ok: it would finish the ExampleApp activity when the AGUI is shown
+//									">\n" + "  <intent-filter>\n"
+//									+ "    <action android:name=\"android.intent.action.MAIN\" />\n"
+//									+ "    <category android:name=\"android.intent.category.LAUNCHER\" />\n"
+//									+ "  </intent-filter>\n" + "</activity>\n");
+//
+//						}
 
 						break;
 					}
@@ -297,78 +298,78 @@ public class ManifestModifier {
 //		out = allowbackupOut;
 		
 		//按照commandline中设置的参数修改allowBackup，有allowBackup就修改true或false，没有就加上allowbackup
-		Matcher allowbackupMatcher = Pattern.compile("(<application\\b([^>]*?))(/?>)", Pattern.DOTALL).matcher(out.toString());
-		StringBuffer allowbackupOut = new StringBuffer();
-		while (allowbackupMatcher.find())
-		{
-			//如果原来没有allowbackup参数
-			if(!(allowbackupMatcher.group(0).contains("android:allowBackup")))
-			{
-				if(CommandLine.ifAllowBackup)
-				{
-					allowbackupMatcher.appendReplacement(allowbackupOut, Matcher.quoteReplacement(allowbackupMatcher.group(1) + " android:allowBackup= \"true\" " + allowbackupMatcher.group(3)));
-				}
-				else
-				{
-					allowbackupMatcher.appendReplacement(allowbackupOut, Matcher.quoteReplacement(allowbackupMatcher.group(1) + " android:allowBackup= \"false\" " + allowbackupMatcher.group(3)));
-				}
-				
-			}
-			//如果原来有allowbackup参数
-			else
-			{
-				allowbackupMatcher = Pattern.compile("(<application\\b[^>]*?)\\b(android:allowBackup=)(\".*?\")\\s([^>]*?)(/?>)", Pattern.DOTALL).matcher(out.toString());
-				allowbackupOut = new StringBuffer();
-				allowbackupMatcher.find();
-				if(CommandLine.ifAllowBackup)
-				{
-					allowbackupMatcher.appendReplacement(allowbackupOut, Matcher.quoteReplacement(allowbackupMatcher.group(1) + allowbackupMatcher.group(2) + " \"true\" " + allowbackupMatcher.group(4) + allowbackupMatcher.group(5)));
-				}
-				else
-				{
-					allowbackupMatcher.appendReplacement(allowbackupOut, Matcher.quoteReplacement(allowbackupMatcher.group(1) + allowbackupMatcher.group(2) + " \"false\" " + allowbackupMatcher.group(4) + allowbackupMatcher.group(5)));
-				}
-			}
-		}
-		allowbackupMatcher.appendTail(allowbackupOut);
-		out = allowbackupOut;
+//		Matcher allowbackupMatcher = Pattern.compile("(<application\\b([^>]*?))(/?>)", Pattern.DOTALL).matcher(out.toString());
+//		StringBuffer allowbackupOut = new StringBuffer();
+//		while (allowbackupMatcher.find())
+//		{
+//			//如果原来没有allowbackup参数
+//			if(!(allowbackupMatcher.group(0).contains("android:allowBackup")))
+//			{
+//				if(CommandLine.ifAllowBackup)
+//				{
+//					allowbackupMatcher.appendReplacement(allowbackupOut, Matcher.quoteReplacement(allowbackupMatcher.group(1) + " android:allowBackup= \"true\" " + allowbackupMatcher.group(3)));
+//				}
+//				else
+//				{
+//					allowbackupMatcher.appendReplacement(allowbackupOut, Matcher.quoteReplacement(allowbackupMatcher.group(1) + " android:allowBackup= \"false\" " + allowbackupMatcher.group(3)));
+//				}
+//				
+//			}
+//			//如果原来有allowbackup参数
+//			else
+//			{
+//				allowbackupMatcher = Pattern.compile("(<application\\b[^>]*?)\\b(android:allowBackup=)(\".*?\")\\s([^>]*?)(/?>)", Pattern.DOTALL).matcher(out.toString());
+//				allowbackupOut = new StringBuffer();
+//				allowbackupMatcher.find();
+//				if(CommandLine.ifAllowBackup)
+//				{
+//					allowbackupMatcher.appendReplacement(allowbackupOut, Matcher.quoteReplacement(allowbackupMatcher.group(1) + allowbackupMatcher.group(2) + " \"true\" " + allowbackupMatcher.group(4) + allowbackupMatcher.group(5)));
+//				}
+//				else
+//				{
+//					allowbackupMatcher.appendReplacement(allowbackupOut, Matcher.quoteReplacement(allowbackupMatcher.group(1) + allowbackupMatcher.group(2) + " \"false\" " + allowbackupMatcher.group(4) + allowbackupMatcher.group(5)));
+//				}
+//			}
+//		}
+//		allowbackupMatcher.appendTail(allowbackupOut);
+//		out = allowbackupOut;
 		
 		//按照commandline中设置的参数修改debuggable，有debuggable就修改true或者false，没有就加上debuggable
-		Matcher debuggableMatcher = Pattern.compile("(<application\\b([^>]*?))(/?>)", Pattern.DOTALL).matcher(out.toString());
-		StringBuffer debuggableOut = new StringBuffer();
-		while (debuggableMatcher.find())
-		{
-			//如果原来没有debuggable参数
-			if(!(debuggableMatcher.group(0).contains("android:debuggable")))
-			{
-				if(CommandLine.ifDebuggable)
-				{
-					debuggableMatcher.appendReplacement(debuggableOut, Matcher.quoteReplacement(debuggableMatcher.group(1) + " android:debuggable= \"true\" " + debuggableMatcher.group(3)));
-				}
-				else
-				{
-					debuggableMatcher.appendReplacement(debuggableOut, Matcher.quoteReplacement(debuggableMatcher.group(1) + " android:debuggable= \"false\" " + debuggableMatcher.group(3)));
-				}
-				
-			}
-			//如果原来有debuggable参数
-			else
-			{
-				debuggableMatcher = Pattern.compile("(<application\\b[^>]*?)\\b(android:debuggable=)(\".*?\")\\s([^>]*?)(/?>)", Pattern.DOTALL).matcher(out.toString());
-				debuggableOut = new StringBuffer();
-				debuggableMatcher.find();
-				if(CommandLine.ifDebuggable)
-				{
-					debuggableMatcher.appendReplacement(debuggableOut, Matcher.quoteReplacement(debuggableMatcher.group(1) + debuggableMatcher.group(2) + " \"true\" " + debuggableMatcher.group(4) + debuggableMatcher.group(5)));
-				}
-				else
-				{
-					debuggableMatcher.appendReplacement(debuggableOut, Matcher.quoteReplacement(debuggableMatcher.group(1) + debuggableMatcher.group(2) + " \"false\" " + debuggableMatcher.group(4) + debuggableMatcher.group(5)));
-				}
-			}
-		}
-		debuggableMatcher.appendTail(debuggableOut);
-		out = debuggableOut;
+//		Matcher debuggableMatcher = Pattern.compile("(<application\\b([^>]*?))(/?>)", Pattern.DOTALL).matcher(out.toString());
+//		StringBuffer debuggableOut = new StringBuffer();
+//		while (debuggableMatcher.find())
+//		{
+//			//如果原来没有debuggable参数
+//			if(!(debuggableMatcher.group(0).contains("android:debuggable")))
+//			{
+//				if(CommandLine.ifDebuggable)
+//				{
+//					debuggableMatcher.appendReplacement(debuggableOut, Matcher.quoteReplacement(debuggableMatcher.group(1) + " android:debuggable= \"true\" " + debuggableMatcher.group(3)));
+//				}
+//				else
+//				{
+//					debuggableMatcher.appendReplacement(debuggableOut, Matcher.quoteReplacement(debuggableMatcher.group(1) + " android:debuggable= \"false\" " + debuggableMatcher.group(3)));
+//				}
+//				
+//			}
+//			//如果原来有debuggable参数
+//			else
+//			{
+//				debuggableMatcher = Pattern.compile("(<application\\b[^>]*?)\\b(android:debuggable=)(\".*?\")\\s([^>]*?)(/?>)", Pattern.DOTALL).matcher(out.toString());
+//				debuggableOut = new StringBuffer();
+//				debuggableMatcher.find();
+//				if(CommandLine.ifDebuggable)
+//				{
+//					debuggableMatcher.appendReplacement(debuggableOut, Matcher.quoteReplacement(debuggableMatcher.group(1) + debuggableMatcher.group(2) + " \"true\" " + debuggableMatcher.group(4) + debuggableMatcher.group(5)));
+//				}
+//				else
+//				{
+//					debuggableMatcher.appendReplacement(debuggableOut, Matcher.quoteReplacement(debuggableMatcher.group(1) + debuggableMatcher.group(2) + " \"false\" " + debuggableMatcher.group(4) + debuggableMatcher.group(5)));
+//				}
+//			}
+//		}
+//		debuggableMatcher.appendTail(debuggableOut);
+//		out = debuggableOut;
 		
 
 		// enable permissions if the app has not already done so
@@ -378,16 +379,16 @@ public class ManifestModifier {
 			// /dev/gd/msdk/platform/android/Library/AndroidManifest.xml
 			requiredPermissions.add("android.permission.INTERNET");
 			requiredPermissions.add("android.permission.ACCESS_NETWORK_STATE");
-			requiredPermissions.add("android.permission.ACCESS_WIFI_STATE");
-			requiredPermissions.add("android.permission.WAKE_LOCK");
-			requiredPermissions.add("android.permission.READ_PHONE_STATE");
+//			requiredPermissions.add("android.permission.ACCESS_WIFI_STATE");
+//			requiredPermissions.add("android.permission.WAKE_LOCK");
+//			requiredPermissions.add("android.permission.READ_PHONE_STATE");
 		}
 		//安全桌面添加需要的权限
-		if(CommandLine.addToSecDeskTop)
-		{
-			requiredPermissions.add("com.zdk.android.agent.permission.READ");
-			requiredPermissions.add("com.zdk.android.agent.permission.WRITE");
-		}
+//		if(CommandLine.addToSecDeskTop)
+//		{
+//			requiredPermissions.add("com.zdk.android.agent.permission.READ");
+//			requiredPermissions.add("com.zdk.android.agent.permission.WRITE");
+//		}
 		for (String permission : requiredPermissions) {
 			Matcher permissionMatcher = Pattern
 					.compile("<uses-permission\\b[^>]*\\bandroid:name=\"\\Q" + permission + "\\E\"", Pattern.DOTALL)
@@ -395,69 +396,71 @@ public class ManifestModifier {
 			if (!permissionMatcher.find())
 				out.insert(out.indexOf("<application "), "<uses-permission android:name=\"" + permission + "\"/>");
 		}
+		
+		out.insert(out.indexOf("<application "), "<meta-data android:name=\"android.support.VERSION\" android:value=\"25.3.1\"/>\n");
 
 		if (useGoodDynamics) {
 			{
 				injectMGServiceToManifest(out);
 			}
 
-			Matcher appMatcher = Pattern.compile("(<activity\\b([^>]*?))(/?>)", Pattern.DOTALL).matcher(out.toString());
-			StringBuffer mfOut = new StringBuffer();
-			while (appMatcher.find()) {
-				String appAttrs = appMatcher.group(2);
-				if (!appAttrs.matches("(?s).*\\bandroid:exported\\s*=\\s*\"false\".*")
-						&& !appAttrs.matches("(?s).*\\bandroid:alwaysRetainTaskState\\s*=.*") && // i.e. already present and specified
-						!appAttrs.matches("(?s).*\\bandroid:name\\s*=\\s*\"com.zdk.mg.ui.MGInternalActivity\".*") // list of exempt activities here
-				) {
-					appMatcher.appendReplacement(mfOut, Matcher.quoteReplacement(
-							appMatcher.group(1) + " android:alwaysRetainTaskState=\"true\" " + appMatcher.group(3)));
-				}
-			}
-			appMatcher.appendTail(mfOut);
-			out = mfOut; // out=new StringBuffer(mfOut.toString());
+//			Matcher appMatcher = Pattern.compile("(<activity\\b([^>]*?))(/?>)", Pattern.DOTALL).matcher(out.toString());
+//			StringBuffer mfOut = new StringBuffer();
+//			while (appMatcher.find()) {
+//				String appAttrs = appMatcher.group(2);
+//				if (!appAttrs.matches("(?s).*\\bandroid:exported\\s*=\\s*\"false\".*")
+//						&& !appAttrs.matches("(?s).*\\bandroid:alwaysRetainTaskState\\s*=.*") && // i.e. already present and specified
+//						!appAttrs.matches("(?s).*\\bandroid:name\\s*=\\s*\"com.zdk.mg.ui.MGInternalActivity\".*") // list of exempt activities here
+//				) {
+//					appMatcher.appendReplacement(mfOut, Matcher.quoteReplacement(
+//							appMatcher.group(1) + " android:alwaysRetainTaskState=\"true\" " + appMatcher.group(3)));
+//				}
+//			}
+//			appMatcher.appendTail(mfOut);
+//			out = mfOut; // out=new StringBuffer(mfOut.toString());
 		}
 
 	//修改MainAcitivity中的 <category android:name="android.intent.category.LAUNCHER" />为<category android:name="com.zdk.mg.category.DEFAULT" />，
 	//如果没有就添加 <category android:name="android.intent.category.INFO" />,
 	//将通一个<intent-filter 中的<category android:name=\"android.intent.category.DEFAULT\"/>删掉。
-		if(CommandLine.addToSecDeskTop == true)
-		{
-			Matcher activityMatcher = Pattern.compile("<intent-filter[^>]*>([^~]*?)(</intent-filter>)").matcher(out.toString());
-			while(activityMatcher.find())
-			{
-				if(activityMatcher.group(1).contains("android.intent.action.MAIN")&&activityMatcher.group(1).contains("android.intent.category.LAUNCHER"))
-				{
-					stringbufferModify(out, activityMatcher.start(), activityMatcher.end(), "android.intent.category.LAUNCHER", "com.zdk.mg.category.DEFAULT");
-					stringbufferModify(out, activityMatcher.start(), activityMatcher.end(), "<category android:name=\"android.intent.category.DEFAULT\"/>", "");
-					if(!activityMatcher.group(1).contains("android.intent.category.INFO"))
-					{
-						stringbufferModify(out, activityMatcher.start(), activityMatcher.end(), "</intent-filter>", "<category android:name=\"android.intent.category.INFO\" />\n</intent-filter>");
-					}
-				}
-			}
-		}
+//		if(CommandLine.addToSecDeskTop == true)
+//		{
+//			Matcher activityMatcher = Pattern.compile("<intent-filter[^>]*>([^~]*?)(</intent-filter>)").matcher(out.toString());
+//			while(activityMatcher.find())
+//			{
+//				if(activityMatcher.group(1).contains("android.intent.action.MAIN")&&activityMatcher.group(1).contains("android.intent.category.LAUNCHER"))
+//				{
+//					stringbufferModify(out, activityMatcher.start(), activityMatcher.end(), "android.intent.category.LAUNCHER", "com.zdk.mg.category.DEFAULT");
+//					stringbufferModify(out, activityMatcher.start(), activityMatcher.end(), "<category android:name=\"android.intent.category.DEFAULT\"/>", "");
+//					if(!activityMatcher.group(1).contains("android.intent.category.INFO"))
+//					{
+//						stringbufferModify(out, activityMatcher.start(), activityMatcher.end(), "</intent-filter>", "<category android:name=\"android.intent.category.INFO\" />\n</intent-filter>");
+//					}
+//				}
+//			}
+//		}
 		
 	//给带有<provider的地方加上android:process= \":fore\"
-		Matcher providerMatcher = Pattern.compile("(<provider\\b([^>]*?))(/?>)", Pattern.DOTALL).matcher(out.toString());
-		StringBuffer providerOut = new StringBuffer();
-		while (providerMatcher.find())
-		{
-			if(!(providerMatcher.group(0).contains("android:process")))
-			{
-				providerMatcher.appendReplacement(providerOut, Matcher.quoteReplacement(providerMatcher.group(1) + " android:process= \":fore\" " + providerMatcher.group(3)));
-			}
-		}
-		providerMatcher.appendTail(providerOut);
-		out = providerOut;
+//		Matcher providerMatcher = Pattern.compile("(<provider\\b([^>]*?))(/?>)", Pattern.DOTALL).matcher(out.toString());
+//		StringBuffer providerOut = new StringBuffer();
+//		while (providerMatcher.find())
+//		{
+//			if(!(providerMatcher.group(0).contains("android:process")))
+//			{
+//				providerMatcher.appendReplacement(providerOut, Matcher.quoteReplacement(providerMatcher.group(1) + " android:process= \":fore\" " + providerMatcher.group(3)));
+//			}
+//		}
+//		providerMatcher.appendTail(providerOut);
+//		out = providerOut;
 	//singleTask换成singleTop
-		Matcher singletopMatcher = Pattern.compile("(<activity\\b[^>]*?)\\b(android:launchMode=)(\".*?\")\\s([^>]*?)(/?>)", Pattern.DOTALL).matcher(out.toString());
-		StringBuffer singletopout = new StringBuffer();
-		while(singletopMatcher.find())
-		{ 	
-			singletopMatcher.appendReplacement(singletopout, Matcher.quoteReplacement(singletopMatcher.group(1) + singletopMatcher.group(2) + " \"singleTop\" " + singletopMatcher.group(4) + singletopMatcher.group(5)));
-		}
-		singletopMatcher.appendTail(singletopout);
-		out = singletopout;
+//		Matcher singletopMatcher = Pattern.compile("(<activity\\b[^>]*?)\\b(android:launchMode=)(\".*?\")\\s([^>]*?)(/?>)", Pattern.DOTALL).matcher(out.toString());
+//		StringBuffer singletopout = new StringBuffer();
+//		while(singletopMatcher.find())
+//		{ 	
+//			singletopMatcher.appendReplacement(singletopout, Matcher.quoteReplacement(singletopMatcher.group(1) + singletopMatcher.group(2) + " \"singleTop\" " + singletopMatcher.group(4) + singletopMatcher.group(5)));
+//		}
+//		singletopMatcher.appendTail(singletopout);
+//		out = singletopout;
 		
 		// otherwise android.permission.ACCESS_WIFI_STATE would require a wifi
 		// device, e.g., in Android market
@@ -505,19 +508,19 @@ public class ManifestModifier {
 		}
 		
 		
-		//修改原APK没有application文件情况下无法进行libcorehook的问题     
-		Matcher applicationMatcher = Pattern.compile("<application\\b[^>]*?\\bandroid:name=\"([^\"]*)\"", Pattern.DOTALL)
-				.matcher(manifest);
-		String applicationName = "";
-		if (applicationMatcher.find()) {
-			applicationName = applicationMatcher.group(1);
-		}
-		
-		if(applicationName.isEmpty())
-		{
-			//修改manifest，增加application信息
-			out.insert(out.lastIndexOf("<application ")+13, "android:name=\"" + "com.zdk.wrap.mg.proxy.Application" + "\""+" ");
-		}
+//		修改原APK没有application文件情况下无法进行libcorehook的问题     
+//		Matcher applicationMatcher = Pattern.compile("<application\\b[^>]*?\\bandroid:name=\"([^\"]*)\"", Pattern.DOTALL)
+//				.matcher(manifest);
+//		String applicationName = "";
+//		if (applicationMatcher.find()) {
+//			applicationName = applicationMatcher.group(1);
+//		}
+//		
+//		if(applicationName.isEmpty())
+//		{
+//			//修改manifest，增加application信息
+//			out.insert(out.lastIndexOf("<application ")+13, "android:name=\"" + "com.zdk.wrap.mg.proxy.Application" + "\""+" ");
+//		}
 		
 		
 		
@@ -529,50 +532,57 @@ public class ManifestModifier {
 	private static void injectMGServiceToManifest(StringBuffer out) {
 		StringBuffer inApp = new StringBuffer();
 		// GD builtin Activity and Service:
-		inApp.append("<activity android:name=\"com.zdk.mg.ui.MGInternalActivity\"></activity>\n");
-		if (Boolean.FALSE) { // activate when using app-specific
-								// IccReceivingActivity, then also
-								// uncomment IccReceivingActivity.java
-			// Dedicated activity for receiving ICC intents:
-			// cf. GDIccReceivingActivity entry in
-			// /dev/gd/msdk/platform/android/Library/AndroidManifest.xml:
-			inApp.append("<activity android:name=\"com.zdk.wrap.mg.IccReceivingActivity\"\n"
-					+ "  android:exported=\"true\"\n" + "  android:alwaysRetainTaskState=\"true\">\n"
-					+ "  <intent-filter>\n"
-					+ "    <action android:name=\"com.zdk.mg.intent.action.ACTION_ICC_COMMAND\" />\n"
-					+ "  </intent-filter>\n" + "</activity>\n");
-		} else {
-			// introduced by jwhite on 20130902:
-			inApp.append(
-					"<activity android:name=\"com.zdk.mg.MGIccReceivingActivity\"\n" + "  android:exported=\"true\"\n"
-							+ "  android:alwaysRetainTaskState=\"true\">\n" + "  <intent-filter>\n"
-							+ "      <action android:name=\"com.zdk.mg.intent.action.ACTION_ICC_COMMAND\" />\n"
-							+ "  </intent-filter>\n" + "  </activity>\n");
-		}
-
-		if (Boolean.TRUE) {
-			// cf. IccActivity entry in
-			// /dev/gd/msdk/platform/android/Library/AndroidManifest.xml:
-			inApp.append("<activity android:name=\"com.zdk.zdklib.ndkproxy.icc.IccActivity\"\n"
-					+ "  android:exported=\"true\"\n" + // not certain whether this is really required
-					"  android:alwaysRetainTaskState=\"true\"\n" + // would be added by code below anyway, but be specific
-					"  android:theme=\"@android:style/Theme.NoDisplay\"\n" + "  >\n" + "  <intent-filter>\n"
-					+ "    <action android:name=\"com.zdk.mg.intent.action.ACTION_ICC_COMMAND\" />\n"
-					+ "  </intent-filter>\n" + "</activity>\n"
-					+ "<service android:name=\"com.zdk.zdklib.ndkproxy.icc.IccManagerService\"></service>\n");
-		}
-
-		// cf. GDService entry in
-		// /dev/gd/msdk/platform/android/Library/AndroidManifest.xml:
-		inApp.append(
-				"<service android:name=\"com.zdk.mg.service.MGService\" android:enabled=\"true\" android:exported=\"false\" />\n");
-
-		inApp.append(
-				"  <service android:enabled=\"true\" android:exported=\"true\" android:name=\"com.zdk.mg.service.MGIccService\">\n"
-						+ "<intent-filter>\n"
-						+ "<action android:name=\"com.zdk.mg.intent.action.ACTION_ICC_COMMAND\"/>\n"
-						+ "</intent-filter>\n" + "<meta-data android:name=\"MG_ICC_VERSION\" android:value=\"2.1\"/>\n"
-						+ "</service>\n");
+		/*
+		 *  <activity android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode" android:name="com.google.android.gms.ads.AdActivity" android:theme="@android:style/Theme.Translucent"/>
+        <activity android:exported="false" android:name="com.google.android.gms.common.api.GoogleApiActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
+		 */
+		inApp.append("<activity android:configChanges=\"keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode\" android:name=\"com.google.android.gms.ads.AdActivity\" android:theme=\"@android:style/Theme.Translucent\"/>\n");
+		inApp.append("<activity android:exported=\"false\" android:name=\"com.google.android.gms.common.api.GoogleApiActivity\" android:theme=\"@android:style/Theme.Translucent.NoTitleBar\"/>\n");
+		inApp.append("<meta-data android:name=\"com.google.android.gms.version\" android:value=\"@integer/google_play_services_version\"/>\n");
+//		if (Boolean.FALSE) { // activate when using app-specific
+//								// IccReceivingActivity, then also
+//								// uncomment IccReceivingActivity.java
+//			// Dedicated activity for receiving ICC intents:
+//			// cf. GDIccReceivingActivity entry in
+//			// /dev/gd/msdk/platform/android/Library/AndroidManifest.xml:
+//			inApp.append("<activity android:name=\"com.zdk.wrap.mg.IccReceivingActivity\"\n"
+//					+ "  android:exported=\"true\"\n" + "  android:alwaysRetainTaskState=\"true\">\n"
+//					+ "  <intent-filter>\n"
+//					+ "    <action android:name=\"com.zdk.mg.intent.action.ACTION_ICC_COMMAND\" />\n"
+//					+ "  </intent-filter>\n" + "</activity>\n");
+//		} else {
+//			// introduced by jwhite on 20130902:
+//			inApp.append(
+//					"<activity android:name=\"com.zdk.mg.MGIccReceivingActivity\"\n" + "  android:exported=\"true\"\n"
+//							+ "  android:alwaysRetainTaskState=\"true\">\n" + "  <intent-filter>\n"
+//							+ "      <action android:name=\"com.zdk.mg.intent.action.ACTION_ICC_COMMAND\" />\n"
+//							+ "  </intent-filter>\n" + "  </activity>\n");
+//		}
+//
+//		if (Boolean.TRUE) {
+//			// cf. IccActivity entry in
+//			// /dev/gd/msdk/platform/android/Library/AndroidManifest.xml:
+//			inApp.append("<activity android:name=\"com.zdk.zdklib.ndkproxy.icc.IccActivity\"\n"
+//					+ "  android:exported=\"true\"\n" + // not certain whether this is really required
+//					"  android:alwaysRetainTaskState=\"true\"\n" + // would be added by code below anyway, but be specific
+//					"  android:theme=\"@android:style/Theme.NoDisplay\"\n" + "  >\n" + "  <intent-filter>\n"
+//					+ "    <action android:name=\"com.zdk.mg.intent.action.ACTION_ICC_COMMAND\" />\n"
+//					+ "  </intent-filter>\n" + "</activity>\n"
+//					+ "<service android:name=\"com.zdk.zdklib.ndkproxy.icc.IccManagerService\"></service>\n");
+//		}
+//
+//		// cf. GDService entry in
+//		// /dev/gd/msdk/platform/android/Library/AndroidManifest.xml:
+//		inApp.append(
+//				"<service android:name=\"com.zdk.mg.service.MGService\" android:enabled=\"true\" android:exported=\"false\" />\n");
+//
+//		inApp.append(
+//				"  <service android:enabled=\"true\" android:exported=\"true\" android:name=\"com.zdk.mg.service.MGIccService\">\n"
+//						+ "<intent-filter>\n"
+//						+ "<action android:name=\"com.zdk.mg.intent.action.ACTION_ICC_COMMAND\"/>\n"
+//						+ "</intent-filter>\n" + "<meta-data android:name=\"MG_ICC_VERSION\" android:value=\"2.1\"/>\n"
+//						+ "</service>\n");
 		out.insert(out.indexOf("</application>"), inApp.toString());
 	}
 }
