@@ -415,19 +415,7 @@ public class CommandLine {
 										if (whichAdbResult2.getExitStatus() == 0)
 											adbPath = whichAdbResult2.getStdOut().trim();
 										else {
-											for (String tryPath : new String[] { // adding
-																					// the
-																					// paths
-																					// to
-																					// ServerUtil.runExecutable()
-																					// instead
-																					// did
-																					// not
-																					// work
-																					// 20121130
-																					// on
-																					// a
-																					// MacBookPro
+											for (String tryPath : new String[] {
 													System.getProperty("user.home")
 															+ "/java/android-sdk-mac_x86/platform-tools"
 													// add more here
@@ -471,18 +459,7 @@ public class CommandLine {
 											.runExecutable(new String[] { adbPath, "shell", "am", "start", "-n",
 													appInfo.getPackageName() + (appInfo.getOptMainActivityName() != null
 															? "/" + appInfo.getOptMainActivityName() : ""),
-													"--activity-brought-to-front", "-W" // wait
-																						// such
-																						// that
-																						// sleep()
-																						// (see
-																						// below)
-																						// before
-																						// key
-																						// entries
-																						// gets
-																						// more
-																						// reliable
+													"--activity-brought-to-front", "-W"
 									}, true); // for GD apps causes for unknown
 												// reason:
 												// "java.lang.RuntimeException:
@@ -495,8 +472,7 @@ public class CommandLine {
 						}
 					} finally {
 						if (origAppInStr != null)
-							origAppInStr.close();
-					}
+							origAppInStr.close();					}
 				} catch (ProcessingException e) {
 					e.printStackTrace();
 					System.exit(1); // required e.g. for ant

@@ -26,7 +26,6 @@ public class GeneratorPhase1ConfigParams {
       assert !processed;
     }
     
-    //��������entitiesThatComeLater���Ǳ�֤�������ǰ���ˣ�
     public void executeBefore(PrioritizableGuardedEntity guardedEntity) {
       entitiesThatComeLater.add(guardedEntity);
       assert !processed;

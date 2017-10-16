@@ -121,10 +121,6 @@ public class SmaliModifier {
         assert absFilePath.startsWith(smaliDumpDirPath);
         String relFilePath=absFilePath.substring(smaliDumpDirPath.length());
         
-        if(AndroidWhiteList.isInWhiteList(relFilePath)){
-        	return;
-        }
-        
         if (relFilePath.endsWith(".smali")) 
         {
           if (limitToFiles.isEmpty() || limitToFiles.contains(relFilePath)) 

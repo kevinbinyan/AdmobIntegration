@@ -124,11 +124,6 @@ public class SmaliClassAnalyzer implements InheritanceHierarchyAnalyzer,com.zdk.
                 	classNameTmp = classNameTmp.substring(1, classNameTmp.length()-1);
                 }
                 
-                if(!AndroidWhiteList.isClassInWhiteList(null,classNameTmp))
-                {
-                	extendsClassInApp.put(className,superName);
-                }
-                
               }
             }
           }
