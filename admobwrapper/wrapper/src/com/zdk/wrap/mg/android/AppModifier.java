@@ -189,6 +189,12 @@ public class AppModifier
 
 			return apktoolExtractDir;
 		}
+		
+		public File getAdmobDir()
+		{
+
+			return admobtoolExtractDir;
+		}
 	}
 
 	public static void configure(String aaptPath, String dxPath,
@@ -362,10 +368,9 @@ public class AppModifier
 			SmaliModifier smaliModifier = new SmaliModifier(useGoodDynamics, useProxyTier);
 			smaliModifier.injectModifiedClasses(smaliDumpDir, classAnalyzer, developerDebugMode,
 					parameters.getOptAppTag() != null ? parameters.getOptAppTag() : parameters.getOptGDApplicationID());
-			// 从这开始有问题，缺少wrapperlib
+			
 			copyWrapperLib(smaliDumpDir,
-					resourceReconstruction
-							.getRootDir(),
+					resourceReconstruction.getRootDir(),resourceReconstruction.getAdmobDir(),
 					wrappedManifestFilename, resourceReconstruction.getResourceDirPath(),
 					ManifestModifier.appInfo.getPackageName());
 
@@ -373,10 +378,10 @@ public class AppModifier
 			final String cfgPropFilename = PathAndFileConfig.getCfgFileBaseName(miscDir);
 			createAppcentralConfigFile(cfgPropFilename, parameters.getOptGDApplicationID(),
 					parameters.getOptGDApplicationVersion());
-			final String gdSettingsFilename = PathAndFileConfig
-					.getSettingsFileName(resourceReconstruction.getRootDir());
-			MGSettingsModifier.modifyGDSettings(gdSettingsFilename, parameters.getOptGDApplicationID(),
-					parameters.getOptGDApplicationVersion(), parameters.getOptGDLogging());
+//			final String gdSettingsFilename = PathAndFileConfig
+//					.getSettingsFileName(resourceReconstruction.getRootDir());
+//			MGSettingsModifier.modifyGDSettings(gdSettingsFilename, parameters.getOptGDApplicationID(),
+//					parameters.getOptGDApplicationVersion(), parameters.getOptGDLogging());
 
 			// gd配置，clear
 			String gdConfigInfoFilename = null;
@@ -1061,7 +1066,7 @@ public class AppModifier
 	}
 
 	private void copyWrapperLib(File targetDirectory,
-			File resourcesTarget, /* int optMinSDKVersion, */
+			File resourcesTarget, File admobTarget,
 			String wrappedManifestFilename, String reconstructedResourceDirPath, String packageName)
 			throws ProcessingException, IOException
 	{
@@ -1080,9 +1085,9 @@ public class AppModifier
 
 			final String wrapperTimestamp = PathAndFileConfig.getWrapperTimestampFileLocation(cacheDir);
 
-			final String cachedSmaliDir = PathAndFileConfig.getCachedSmaliDir(cacheDir);
+			final String cachedSmaliDir = admobTarget.getAbsolutePath() + File.separator + "smali";//PathAndFileConfig.getCachedSmaliDir(cacheDir);
 
-			final String cachedResourcesDir = PathAndFileConfig.getResourceDir(cacheDir);
+			final String cachedResourcesDir = admobTarget.getAbsolutePath();
 
 			final String cachedFrameworkDir = PathAndFileConfig.getCachedFrameworkDir(cacheDir);
 
@@ -1095,95 +1100,77 @@ public class AppModifier
 			String mgJar = com.zdk.wrap.mg.AppModifier.getResourceFilePath("android/mg.jar");
 			
 			
-			String v4PackagePath = targetDirectory+File.separator+"android"+File.separator+"support"+File.separator+"v4";
-			
-//			File v4Packagefile = new File(v4PackagePath);
-			
-//将shrink的位置放到后面，为了不将apk可能用到的函数shrink没了。
-//			if(v4Packagefile.exists())
-//			{
-//				String[] inputJars =
-//					{ ServerUtil.getRealFilePath(wrapperlibLocation), ServerUtil.getRealFilePath(googlePlayLibLocation),
-//							ServerUtil.getRealFilePath(mgJar) };
-//				ProguardHelper.startShrink(inputJars, shrinkedLibJar);
-//			}
-//			else
-//			{
-//				String[] inputJars =
-//					{ ServerUtil.getRealFilePath(wrapperlibLocation), ServerUtil.getRealFilePath(googlePlayLibLocation),
-//							ServerUtil.getRealFilePath(androidSupportV4Location), ServerUtil.getRealFilePath(mgJar) };
-//				ProguardHelper.startShrink(inputJars, shrinkedLibJar);
-//			}
+//			String v4PackagePath = targetDirectory+File.separator+"android"+File.separator+"support"+File.separator+"v4";
 			
 
 			if (!new File(wrapperTimestamp).exists() || isNewer(wrapperlibLocation, wrapperTimestamp))
 			{
-				new FileOutputStream(wrapperTimestamp).close();
-				final String wrapperDex = PathAndFileConfig.getWrapperDex(cacheDir);
+//				new FileOutputStream(wrapperTimestamp).close();
+//				final String wrapperDex = PathAndFileConfig.getWrapperDex(cacheDir);
+//
+//				if (new File(wrapperDex).exists())
+//					ServerUtil.removeRecursively(wrapperDex, true, null);
+//
+//				if (new File(cachedResourcesDir).exists())
+//					ServerUtil.removeRecursively(cachedResourcesDir, true, null);
+//				ServerUtil.mkdir(new File(cachedResourcesDir));
 
-				if (new File(wrapperDex).exists())
-					ServerUtil.removeRecursively(wrapperDex, true, null);
-
-				if (new File(cachedResourcesDir).exists())
-					ServerUtil.removeRecursively(cachedResourcesDir, true, null);
-				ServerUtil.mkdir(new File(cachedResourcesDir));
-
-				List<String> dxArgs = new LinkedList<String>();
-				dxArgs.add(dxPath);
-				dxArgs.add("--dex");
-				dxArgs.add("--output=" + wrapperDex);
-//				dxArgs.add(shrinkedLibJar);
-				
-				dxArgs.add(wrapperlibLocation);
-				dxArgs.add(mgJar);
-				dxArgs.add(androidSupportV4Location);
-				
-				// dxArgs.add(wrapperlibLocation);
-				// todo:以后改成自动的，现在都是手动的
-				// dxArgs.add(androidSupportV4Location);
-				// dxArgs.add(googlePlayLibLocation);
-
-				String mgAar = com.zdk.wrap.mg.AppModifier.getResourceFilePath("android/mg.aar");
-				// String gdAddJar =
-				// com.zdk.wrap.mg.AppModifier.getResourceFilePath("android/gdadd.jar");
-//				if (!(mgJar != null && new File(mgJar).exists()))
-//					throw new ProcessingException("Cannot locate mg.aar .");
-				// if (!(gdAddJar != null && new File(gdAddJar).exists()))
-				// throw new ProcessingException("Cannot locate gdadd.jar .");
-				// dxArgs.add(mgJar);
-				// dxArgs.add(gdAddJar);
-
-				ServerUtil.unpackJar(cachedResourcesDir, mgAar, null, new NonClassFilter());
-				
-				// ServerUtil.unpackJar(cachedResourcesDir, gdAddJar, null, new
-				// NonClassFilter());
-
-				final RunExecResult dxOutputResult = ServerUtil.runExecutable(dxArgs, true);
-				final String dxOutput = dxOutputResult.allOutput();
-				if (dxOutputResult.getExitStatus() != 0 || dxOutput.indexOf("trouble processing:") >= 0)
-					throw new ProcessingException("dx failed: " + dxOutput);
-				debugLog("dx wrapper.jar:\n" + dxOutput);
-				if (new File(cachedSmaliDir).exists())
-					ServerUtil.removeRecursively(cachedSmaliDir, true, null);
-				ServerUtil.removeRecursively(shrinkedLibJar, true, null);
+//				List<String> dxArgs = new LinkedList<String>();
+//				dxArgs.add(dxPath);
+//				dxArgs.add("--dex");
+//				dxArgs.add("--output=" + wrapperDex);
+////				dxArgs.add(shrinkedLibJar);
+//				
+//				dxArgs.add(wrapperlibLocation);
+//				dxArgs.add(mgJar);
+//				dxArgs.add(androidSupportV4Location);
+//				
+//				// dxArgs.add(wrapperlibLocation);
+//				// todo:以后改成自动的，现在都是手动的
+//				// dxArgs.add(androidSupportV4Location);
+//				// dxArgs.add(googlePlayLibLocation);
+//
+//				String mgAar = com.zdk.wrap.mg.AppModifier.getResourceFilePath("android/mg.aar");
+//				// String gdAddJar =
+//				// com.zdk.wrap.mg.AppModifier.getResourceFilePath("android/gdadd.jar");
+////				if (!(mgJar != null && new File(mgJar).exists()))
+////					throw new ProcessingException("Cannot locate mg.aar .");
+//				// if (!(gdAddJar != null && new File(gdAddJar).exists()))
+//				// throw new ProcessingException("Cannot locate gdadd.jar .");
+//				// dxArgs.add(mgJar);
+//				// dxArgs.add(gdAddJar);
+//
+//				ServerUtil.unpackJar(cachedResourcesDir, mgAar, null, new NonClassFilter());
+//				
+//				// ServerUtil.unpackJar(cachedResourcesDir, gdAddJar, null, new
+//				// NonClassFilter());
+//
+//				final RunExecResult dxOutputResult = ServerUtil.runExecutable(dxArgs, true);
+//				final String dxOutput = dxOutputResult.allOutput();
+//				if (dxOutputResult.getExitStatus() != 0 || dxOutput.indexOf("trouble processing:") >= 0)
+//					throw new ProcessingException("dx failed: " + dxOutput);
+//				debugLog("dx wrapper.jar:\n" + dxOutput);
+//				if (new File(cachedSmaliDir).exists())
+//					ServerUtil.removeRecursively(cachedSmaliDir, true, null);
+//				ServerUtil.removeRecursively(shrinkedLibJar, true, null);
 				// org.jf.baksmali.Main.main(new String[] {"disassemble",
 				// "-o",cachedSmaliDir, wrapperDex });
-				try
-				{
-					ServerUtil.debugLog("baksmali.jar execute");
-					ServerUtil.runExecutable(new String[]
-					{ "java", "-jar", PathAndFileConfig.baksmaliPath, "disassemble", wrapperDex, "-o", cachedSmaliDir },
-							true);
-				} catch (IOException e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+//				try
+//				{
+//					ServerUtil.debugLog("baksmali.jar execute");
+//					ServerUtil.runExecutable(new String[]
+//					{ "java", "-jar", PathAndFileConfig.baksmaliPath, "disassemble", wrapperDex, "-o", cachedSmaliDir },
+//							true);
+//				} catch (IOException e)
+//				{
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 
 //				ServerUtil.unpackJar(cachedSmaliDir, wrapperlibLocation, null, new SmaliFilter());
 				redirectSupportForSDK(cachedSmaliDir);
 
-				ServerUtil.unpackJar(cachedResourcesDir, wrapperlibLocation, null, new NonClassFilter()); // e.g.
+//				ServerUtil.unpackJar(cachedResourcesDir, wrapperlibLocation, null, new NonClassFilter()); // e.g.
 				// libgdWrapAndroid.so
 
 				{
@@ -1216,6 +1203,10 @@ public class AppModifier
 					ServerUtil.mkdir(classesDir);
 					// 用sdk的plantforms中的Android-25中的android。jar替换掉了cachedFrameworkAbsPath
 					// ， cachedFrameworkAbsPath值为frameworkLocation
+					File publicxml = new File(cachedResourcesDir + File.separator + "res" + File.separator + "values" + File.separator + "public.xml");
+					if(publicxml.exists()){
+						publicxml.delete();
+					}
 					androidJarVersion = 25;
 					final String androidjarPath = getAndroidJarPath(androidJarVersion);
 					final String aaptPackageOutput = ServerUtil.runExecutable
@@ -1223,7 +1214,7 @@ public class AppModifier
 									{ 
 											aaptPath, "package",
 											"--extra-packages", 
-											":com.zdk.mg",
+											":com.ksun.admob",
 							// "--generate-dependencies",
 											"--auto-add-overlay", 
 											"-f", "-m", 
@@ -1254,7 +1245,7 @@ public class AppModifier
 																	// process
 							"-d", classesDir.getAbsolutePath(),
 							packageName.replace('.', File.separatorChar) + File.separator + "R.java",
-							"com/zdk/mg/R.java" }, null, null, true);
+							"com/ksun/admob/R.java" }, null, null, true);
 					
 					
 					String rFileDex = rFileDir.getAbsolutePath() + File.separator + "rfile.dex";
@@ -1284,7 +1275,7 @@ public class AppModifier
 							File[] filesOfCom = new File(backSmaliPath.getPath()+File.separator+"com").listFiles();
 							for(int j =0 ; j<filesOfCom.length ; j++)
 							{
-								if(!filesOfCom[j].getName().equals("zdk"))
+								if(!filesOfCom[j].getName().equals("ksun"))
 								{
 									ServerUtil.removeRecursively(filesOfCom[j].getPath(), true, null);
 								}
@@ -1320,9 +1311,18 @@ public class AppModifier
 				}
 			}
 
+			//TODO 是否其它资源也需要合并，待考虑
 			mergeResourceFiles("res" + File.separator + "values" + File.separator + "strings.xml", cachedResourcesDir,
 					resourcesTarget);
 			mergeResourceFiles("res" + File.separator + "values" + File.separator + "styles.xml", cachedResourcesDir,
+					resourcesTarget);
+			mergeResourceFiles("res" + File.separator + "values" + File.separator + "attrs.xml", cachedResourcesDir,
+					resourcesTarget);
+			mergeResourceFiles("res" + File.separator + "values" + File.separator + "colors.xml", cachedResourcesDir,
+					resourcesTarget);
+			mergeResourceFiles("res" + File.separator + "values" + File.separator + "ids.xml", cachedResourcesDir,
+					resourcesTarget);
+			mergeResourceFiles("res" + File.separator + "values" + File.separator + "integers.xml", cachedResourcesDir,
 					resourcesTarget);
 			// TODO: also include GD's values-v12 and values-v8 directories
 			// 合并smali
@@ -1335,8 +1335,8 @@ public class AppModifier
 				throw new IOException("multidexer.execute raise an exception ");
 			}
 
-			ServerUtil.copyFilesRecursively(cachedResourcesDir + "\\jni", resourcesTarget.getAbsolutePath() + "\\lib",
-					true, (FilenameFilter) null);
+//			ServerUtil.copyFilesRecursively(cachedResourcesDir + "\\jni", resourcesTarget.getAbsolutePath() + "\\lib",
+//					true, (FilenameFilter) null);
 			// ServerUtil.copyFilesRecursively(cachedResourcesDir+"\\libs",
 			// resourcesTarget.getAbsolutePath()+"\\lib",true, (FilenameFilter)
 			// null);
@@ -1351,7 +1351,9 @@ public class AppModifier
 						{
 
 							return !(dir.getParentFile().getName().equals("res") && dir.getName().equals("values")
-									&& (name.equals("strings.xml") || name.equals("styles.xml")));
+									&& (name.equals("strings.xml") || name.equals("styles.xml")
+											|| name.equals("attrs.xml")|| name.equals("colors.xml")
+											|| name.equals("ids.xml")|| name.equals("integers.xml")));
 						}
 					});
 		}
@@ -1363,14 +1365,14 @@ public class AppModifier
 				String absFilePath = file.toString();
 				assert absFilePath.startsWith(cachedSmaliDir);
 				String relFilePath = absFilePath.substring(cachedSmaliDir.length());
-				String wrapperPath = File.separator + "com" + File.separator + "zdk" + File.separator + "wrap" + File.separator + "mg";
-				if (!relFilePath.startsWith(wrapperPath) && relFilePath.endsWith(".smali")) {
+//				String wrapperPath = File.separator + "com" + File.separator + "zdk" + File.separator + "wrap" + File.separator + "mg";
+				if (relFilePath.endsWith(".smali")) {
 					final String oldSmaliText = ServerUtil.readTextFile(file, "UTF-8");
 					String newSmaliText = oldSmaliText;
 
 					Pattern pattern = Pattern.compile("Landroid/support");
 					Matcher thisClassMatcher = pattern.matcher(newSmaliText);
-					newSmaliText = pattern.matcher(newSmaliText).replaceAll("Lweigu/android/support");
+					newSmaliText = pattern.matcher(newSmaliText).replaceAll("Lksun/android/support");
 					if (!oldSmaliText.equals(newSmaliText)) {
 						FileWriter out = new FileWriter(file);
 						out.write(newSmaliText);
@@ -1380,7 +1382,7 @@ public class AppModifier
 			}
 		});
 		String originPath = cachedSmaliDir + File.separator + "android" + File.separator + "support";
-		String targetPath = cachedSmaliDir + File.separator + "weigu" + File.separator + "android" + File.separator + "support";
+		String targetPath = cachedSmaliDir + File.separator + "ksun" + File.separator + "android" + File.separator + "support";
 		ServerUtil.copyFilesRecursively(originPath, targetPath , true, null);
 		ServerUtil.removeRecursively(originPath, true, null);
 	}
@@ -1404,7 +1406,7 @@ public class AppModifier
 				Matcher m = Pattern.compile("<resources[^>]*>(.*)</resources>", Pattern.DOTALL)
 						.matcher(wrapperResContents);
 				if (!m.find())
-					throw new ProcessingException("Cannot parse wrapper's " + resRelName);
+					return;
 				appResContents.insert(pos, m.group(1));
 
 				ServerUtil.writeTextFile(appResContents.toString(), appResFile, "UTF-8");
